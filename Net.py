@@ -3,18 +3,22 @@ import math
 import matplotlib.pyplot as pp
 
 
+# default function to initialize weights and biases
 def rand():
     return random.uniform(-1, 1)
 
 
+# default activation function
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
+# calculates gradient of a function at a specific value, used for descent
 def gradient(func, x, delta=0.001):
     return (func(x + delta) - func(x)) / delta
 
 
+# manually initialize weights and biases
 def make_net(layers, nodes, cons, biases, act=sigmoid):
     net = Net(layers, nodes, act)
     net.cons = cons
@@ -24,19 +28,21 @@ def make_net(layers, nodes, cons, biases, act=sigmoid):
 
 
 class Net:
-    def __init__(self, layers, nodes, act=sigmoid):
+    def __init__(self, layers, nodes, act=sigmoid, r=rand):
         self.layers = layers - 1
         self.nodes = nodes
         self.cons = []
         self.biases = []
         self.activate = act
         for layer in range(self.layers):
-            self.cons.append([[rand() for i in range(nodes[layer])] for j in range(nodes[layer + 1])])
-            self.biases.append([rand() for i in range(nodes[layer + 1])])
+            self.cons.append([[r() for i in range(nodes[layer])] for j in range(nodes[layer + 1])])
+            self.biases.append([r() for i in range(nodes[layer + 1])])
 
+    # change the activation function
     def set_activation(self, fun):
         self.activate = fun
 
+    # returns a string containing formatted weights and biases arrays
     def __str__(self):
         result = "["
         for i in range(len(self.cons)):
@@ -59,8 +65,8 @@ class Net:
 
         return result
 
+    # feeds forward an input array and returns the calculated output
     def get_out(self, inp):
-
         for layer in range(self.layers):
             inp = list(map(self.activate, inp))
             nxt = []
@@ -73,7 +79,8 @@ class Net:
 
         return list(map(self.activate, nxt))
 
-    def train(self, inp, exp, lr):
+    # trains the net on a given input array, desired output array, and learning rate (default 0.1)
+    def train(self, inp, exp, lr=0.1):
         inputs = [inp]
         for layer in range(self.layers):
             inp = list(map(self.activate, inp))
