@@ -8,9 +8,19 @@ def rand():
     return random.uniform(-1, 1)
 
 
-# default activation function
+# basic activation function
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
+
+
+# default activation function
+def tanh(x):
+    return 1 - sigmoid(-2 * x)
+
+
+# relu
+def relu(x):
+    return max(0, x)
 
 
 # calculates gradient of a function at a specific value, used for descent
@@ -19,7 +29,7 @@ def gradient(func, x, delta=0.001):
 
 
 # manually initialize weights and biases
-def make_net(layers, nodes, cons, biases, act=sigmoid):
+def make_net(layers, nodes, cons, biases, act=relu):
     net = Net(layers, nodes, act)
     net.cons = cons
     net.biases = biases
@@ -28,7 +38,7 @@ def make_net(layers, nodes, cons, biases, act=sigmoid):
 
 
 class Net:
-    def __init__(self, layers, nodes, act=sigmoid, r=rand):
+    def __init__(self, layers, nodes, act=tanh, r=rand):
         self.layers = layers - 1
         self.nodes = nodes
         self.cons = []
@@ -99,7 +109,7 @@ class Net:
         out = list(map(self.activate, nxt))
 
         # errors will have all errors from out to first hidden in that order (activated)
-        errors = [[(exp[i] - out[i]) for i in range(len(out))]]
+        errors = [[(exp[i] - out[i]) for i in range(max(len(out), len(exp)))]]
 
         for layer in range(self.layers - 1):
             err = []
