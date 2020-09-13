@@ -1,5 +1,6 @@
 import random
 import math
+import numpy as np
 import matplotlib.pyplot as pp
 
 
@@ -29,12 +30,12 @@ def gradient(func, x, delta=0.001):
 
 
 # manually initialize weights and biases
-def make_net(layers, nodes, cons, biases, act=relu):
-    net = Net(layers, nodes, act)
-    net.cons = cons
-    net.biases = biases
-
-    return net
+# def make_net(layers, nodes, cons, biases, act=relu):
+#     net = Net(layers, nodes, act)
+#     net.cons = cons
+#     net.biases = biases
+#
+#     return net
 
 
 class Net:
@@ -45,8 +46,8 @@ class Net:
         self.biases = []
         self.activate = act
         for layer in range(self.layers):
-            self.cons.append([[r() for i in range(nodes[layer])] for j in range(nodes[layer + 1])])
-            self.biases.append([r() for i in range(nodes[layer + 1])])
+            self.cons.append(np.random.rand(nodes[layer], nodes[layer + 1]))
+            self.biases.append(np.random.rand(nodes[layer + 1], 1))
 
     # change the activation function
     def set_activation(self, fun):
@@ -75,19 +76,12 @@ class Net:
 
         return result
 
-    # feeds forward an input array and returns the calculated output
+    # feeds forward an input np array and returns the calculated output
     def get_out(self, inp):
         for layer in range(self.layers):
-            inp = list(map(self.activate, inp))
-            nxt = []
-            for i in range(self.nodes[layer + 1]):
-                s = self.biases[layer][i]
-                for j in range(self.nodes[layer]):
-                    s += self.cons[layer][i][j] * inp[j]
-                nxt.append(s)
-            inp = nxt
-
-        return list(map(self.activate, nxt))
+            inp = self.activate(inp)
+            inp = np.matmul(self.cons[layer], inp) + self.biases[layer]
+        return self.activate(inp)
 
     # trains the net on a given input array, desired output array, and learning rate (default 0.1)
     def train(self, inp, exp, lr=0.1):
