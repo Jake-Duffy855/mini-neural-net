@@ -30,15 +30,6 @@ def gradient(func, x, delta=0.001):
     return (func(x + delta) - func(x)) / delta
 
 
-# manually initialize weights and biases
-# def make_net(layers, nodes, cons, biases, act=relu):
-#     net = Net(layers, nodes, act)
-#     net.cons = cons
-#     net.biases = biases
-#
-#     return net
-
-
 class Net:
     def __init__(self, layers, nodes, act=tanh, r=rand):
         self.layers = layers - 1
@@ -47,8 +38,8 @@ class Net:
         self.biases = []
         self.activate = act
         for layer in range(self.layers):
-            self.cons.append(np.random.uniform(1, 1, (nodes[layer + 1], nodes[layer])))
-            self.biases.append(np.random.uniform(1, 1, (nodes[layer + 1], 1)))
+            self.cons.append(np.random.uniform(-1, 1, (nodes[layer + 1], nodes[layer])))
+            self.biases.append(np.random.uniform(-1, 1, (nodes[layer + 1], 1)))
 
     # change the activation function
     def set_activation(self, fun):
