@@ -3,6 +3,8 @@ import numpy as np
 import mnist
 import matplotlib.pyplot as plt
 import random
+from tkinter import *
+import math
 
 # get the images and labels
 train_images = mnist.train_images()
@@ -26,7 +28,7 @@ test_images = list(test_images.reshape(-1, 784, 1))
 train_labels = list(train_labels)
 test_labels = list(test_labels)
 
-my_net = nn.Net(4, [784, 256, 128, 10])
+my_net = nn.Net(4, [784, 128, 128, 10])
 
 
 # get the desired output array for the given number
@@ -66,14 +68,14 @@ def train_net(net, iterations=1, divisor=1):
 
 
 
-train_net(my_net, 2, 1)
+train_net(my_net, 1, 10)
 print(get_accuracy(my_net, 1))
 
 f = open("net.txt", "w")
 f.write(my_net.__str__())
 f.close()
 
-for i in range(100):
+for i in range(10):
     print(answer(my_net.get_out(test_images[i]))) #, test_labels[i])
     picture = test_images[i]
     first_image = np.array(test_images[i], dtype=float)
@@ -82,3 +84,43 @@ for i in range(100):
     plt.show()
 
 
+# -----------------------------------------------------------------------
+
+master = Tk()
+canvas_width = 280
+canvas_height = 280
+
+input = np.zeros((784, 1))
+
+
+def clear():
+    c.delete(ALL)
+    input = np.zeros((784, 1))
+
+
+def submit():
+    print(my_net.get_out(input))
+
+
+def paint(event):
+    color = 'white'
+    x1, y1 = (event.x, event.y)
+    x1 = 10 * math.floor(x1 / 10)
+    y1 = 10 * math.floor(y1 / 10)
+    x2 = x1 + 10
+    y2 = y1 + 10
+    c.create_rectangle(x1, y1, x2, y2, fill=color, outline=color)
+    input[x1 + 28 * y1, 1] = 1
+
+
+c = Canvas(master,
+           width=canvas_width,
+           height=canvas_height,
+           bg='black')
+c.pack(expand=YES, fill=BOTH)
+c.bind('<B1-Motion>', paint)
+clear_button = Button(master, command=clear, text="Clear")
+clear_button.pack()
+submit_button = Button(master, command=submit, text="Submit")
+submit_button.pack()
+mainloop()
