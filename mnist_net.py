@@ -6,6 +6,10 @@ import random
 from tkinter import *
 import math
 
+master = Tk()
+canvas_width = 280
+canvas_height = 280
+
 # get the images and labels
 train_images = mnist.train_images()
 train_labels = mnist.train_labels()
@@ -68,14 +72,14 @@ def train_net(net, iterations=1, divisor=1):
 
 
 
-train_net(my_net, 1, 10)
+train_net(my_net, 1, 4)
 print(get_accuracy(my_net, 1))
 
 f = open("net.txt", "w")
 f.write(my_net.__str__())
 f.close()
 
-for i in range(10):
+for i in range(2):
     print(answer(my_net.get_out(test_images[i]))) #, test_labels[i])
     picture = test_images[i]
     first_image = np.array(test_images[i], dtype=float)
@@ -86,31 +90,40 @@ for i in range(10):
 
 # -----------------------------------------------------------------------
 
-master = Tk()
-canvas_width = 280
-canvas_height = 280
-
-input = np.zeros((784, 1))
+inp = np.zeros((784, 1))
 
 
 def clear():
+    global inp
     c.delete(ALL)
-    input = np.zeros((784, 1))
+    inp = np.zeros((784, 1))
 
 
 def submit():
-    print(my_net.get_out(input))
+    print(answer(my_net.get_out(inp)))
 
 
 def paint(event):
     color = 'white'
     x1, y1 = (event.x, event.y)
-    x1 = 10 * math.floor(x1 / 10)
-    y1 = 10 * math.floor(y1 / 10)
-    x2 = x1 + 10
-    y2 = y1 + 10
-    c.create_rectangle(x1, y1, x2, y2, fill=color, outline=color)
-    input[x1 + 28 * y1, 1] = 1
+    x1 = int(x1 / 10)
+    y1 = int(y1 / 10)
+    x2 = x1 + 1
+    y2 = y1 + 1
+    c.create_rectangle(x1 * 10, y1 * 10, x2 * 10, y2 * 10, fill=color, outline=color)
+    c.create_rectangle(x1 * 10, (y1 + 1) * 10,
+                       x2 * 10, (y2 + 1) * 10, fill=color, outline=color)
+    c.create_rectangle(x1 * 10, (y1 - 1) * 10,
+                       x2 * 10, (y2 - 1) * 10, fill=color, outline=color)
+    c.create_rectangle((x1 + 1) * 10, y1 * 10,
+                       (x2 + 1) * 10, y2 * 10, fill=color, outline=color)
+    c.create_rectangle((x1 - 1) * 10, y1 * 10,
+                       (x2 - 1) * 10, y2 * 10, fill=color, outline=color)
+    inp[x1 + y1 * 28, 0] = 1
+    inp[x1 + (y1 + 1) * 28, 0] = min(1, inp[x1 + (y1 + 1) * 28, 0] + 0.2)
+    inp[x1 + (y1 - 1) * 28, 0] = min(1, inp[x1 + (y1 - 1) * 28, 0] + 0.2)
+    inp[(x1 + 1) + y1 * 28, 0] = min(1, inp[x1 + (y1 + 1) * 28, 0] + 0.2)
+    inp[(x1 - 1) + y1 * 28, 0] = min(1, inp[x1 + (y1 - 1) * 28, 0] + 0.2)
 
 
 c = Canvas(master,
