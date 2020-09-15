@@ -16,7 +16,6 @@ train_labels = mnist.train_labels()
 test_images = mnist.test_images()
 test_labels = mnist.test_labels()
 
-
 # plt.imshow(test_images[0], cmap='gray')
 # plt.show()
 
@@ -71,59 +70,89 @@ def train_net(net, iterations=1, divisor=1):
                 plt.plot(i, acc, 'bo')
 
 
-
-train_net(my_net, 1, 4)
+train_net(my_net, 1, 2)
 print(get_accuracy(my_net, 1))
 
 f = open("net.txt", "w")
 f.write(my_net.__str__())
 f.close()
 
-for i in range(2):
-    print(answer(my_net.get_out(test_images[i]))) #, test_labels[i])
+for i in range(0):
+    print(answer(my_net.get_out(test_images[i])))  # , test_labels[i])
+    print(my_net.get_out(test_images[i]))
     picture = test_images[i]
     first_image = np.array(test_images[i], dtype=float)
     pixels = first_image.reshape((28, 28))
     plt.imshow(pixels, cmap='gray')
     plt.show()
 
-
 # -----------------------------------------------------------------------
 
 inp = np.zeros((784, 1))
+points = []
+
+def normalize(points):
+    min_x = min(points, key=lambda n: n[0])[0]
+    min_y = min(points, key=lambda n: n[1])[1]
+    max_x = max(points, key=lambda n: n[0])[0]
+    max_y = max(points, key=lambda n: n[1])[1]
+
+    x_off = min_x
+    y_off = min_y
+
+    size = max(max_x - min_x, max_y - min_y)
+
+    scale = size / 20
+
+    pts = list(map(lambda tup: ((tup[0] - x_off)/ scale, (tup[1] - y_off) / scale), points))
+
+    return pts
+
+
+def center_of_mass(points):
+    com = (sum(i[0] for i in points) / len(points),
+           sum(i[1] for i in points) / len(points))
+    return com
 
 
 def clear():
     global inp
+    global points
     c.delete(ALL)
     inp = np.zeros((784, 1))
+    points = []
 
 
 def submit():
-    print(answer(my_net.get_out(inp)))
+    if len(points) == 0:
+        return
+
+    global inp
+    normal_points = normalize(points)
+    com = center_of_mass(normal_points)
+
+    max_x = max(normal_points, key=lambda n: n[0])[0]
+    max_y = max(normal_points, key=lambda n: n[1])[1]
+
+    x_off = min(14 - com[0], 28 - max_x)
+    y_off = min(14 - com[1], 28 - max_y)
+    centered_points = list(map(lambda tup: (tup[0] + x_off, tup[1] + y_off), normal_points))
+    for pt in centered_points:
+        if int(pt[0]) + 28 * int(pt[1]) < 784:
+            inp[(int(pt[0]) + 28 * int(pt[1]), 0)] = 1
+        if int(pt[0]) + 1 + 28 * int(pt[1]) < 784:
+            inp[(int(pt[0]) + 1 + 28 * int(pt[1]), 0)] = 1
+        # maybe add grey around edges
+
+    print(my_net.get_out(inp), answer(my_net.get_out(inp)))
+    clear()
 
 
 def paint(event):
     color = 'white'
     x1, y1 = (event.x, event.y)
-    x1 = int(x1 / 10)
-    y1 = int(y1 / 10)
-    x2 = x1 + 1
-    y2 = y1 + 1
-    c.create_rectangle(x1 * 10, y1 * 10, x2 * 10, y2 * 10, fill=color, outline=color)
-    c.create_rectangle(x1 * 10, (y1 + 1) * 10,
-                       x2 * 10, (y2 + 1) * 10, fill=color, outline=color)
-    c.create_rectangle(x1 * 10, (y1 - 1) * 10,
-                       x2 * 10, (y2 - 1) * 10, fill=color, outline=color)
-    c.create_rectangle((x1 + 1) * 10, y1 * 10,
-                       (x2 + 1) * 10, y2 * 10, fill=color, outline=color)
-    c.create_rectangle((x1 - 1) * 10, y1 * 10,
-                       (x2 - 1) * 10, y2 * 10, fill=color, outline=color)
-    inp[x1 + y1 * 28, 0] = 1
-    inp[x1 + (y1 + 1) * 28, 0] = min(1, inp[x1 + (y1 + 1) * 28, 0] + 0.2)
-    inp[x1 + (y1 - 1) * 28, 0] = min(1, inp[x1 + (y1 - 1) * 28, 0] + 0.2)
-    inp[(x1 + 1) + y1 * 28, 0] = min(1, inp[x1 + (y1 + 1) * 28, 0] + 0.2)
-    inp[(x1 - 1) + y1 * 28, 0] = min(1, inp[x1 + (y1 - 1) * 28, 0] + 0.2)
+    c.create_oval(x1 - 10, y1 - 10, x1 + 10, y1 + 10, fill=color, outline=color)
+    points.append((x1, y1))
 
 
 c = Canvas(master,
