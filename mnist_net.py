@@ -31,7 +31,7 @@ test_images = list(test_images.reshape(-1, 784, 1))
 train_labels = list(train_labels)
 test_labels = list(test_labels)
 
-my_net = nn.Net(4, [784, 128, 128, 10])
+my_net = nn.Net(3, [784, 128, 10])
 
 
 # get the desired output array for the given number
@@ -63,7 +63,7 @@ def train_net(net, iterations=1, divisor=1):
         for i in range(trains):
             for j in range(1):
                 net.train(train_images[i], get_output_array(train_labels[i]),
-                          0.004 * trains / (trains + trains * iteration + i))
+                          0.0004 * trains / (trains + trains * iteration + i))
             if i % 1000 == 0:
                 acc = get_accuracy(my_net, 40)
                 print(str(iteration) + ", " + str(i) + " : " + str(acc))
@@ -77,7 +77,7 @@ f = open("net.txt", "w")
 f.write(my_net.__str__())
 f.close()
 
-for i in range(0):
+for i in range(2):
     print(answer(my_net.get_out(test_images[i])))  # , test_labels[i])
     print(my_net.get_out(test_images[i]))
     picture = test_images[i]
@@ -138,13 +138,25 @@ def submit():
     y_off = min(14 - com[1], 28 - max_y)
     centered_points = list(map(lambda tup: (tup[0] + x_off, tup[1] + y_off), normal_points))
     for pt in centered_points:
-        if int(pt[0]) + 28 * int(pt[1]) < 784:
-            inp[(int(pt[0]) + 28 * int(pt[1]), 0)] = 1
-        if int(pt[0]) + 1 + 28 * int(pt[1]) < 784:
-            inp[(int(pt[0]) + 1 + 28 * int(pt[1]), 0)] = 1
+        index = int(pt[0]) + 28 * int(pt[1])
+        if 0 < index < 784:
+            inp[(index, 0)] = 1
+        if 0 < index + 1 < 784:
+            inp[(index + 1, 0)] = min(inp[(index + 1, 0)] + 0.3, 1)
+        if 0 < index - 1 < 784:
+            inp[(index - 1, 0)] = min(inp[(index - 1, 0)] + 0.3, 1)
+        if 0 < index + 28 < 784:
+            inp[(index + 28, 0)] = min(inp[(index + 28, 0)] + 0.3, 1)
+        if 0 < index - 28 < 784:
+            inp[(index - 28, 0)] = min(inp[(index - 28, 0)] + 0.3, 1)
         # maybe add grey around edges
+    # pix = inp.reshape((28, 28))
+    # plt.imshow(pix, cmap='gray')
+    # plt.show()
+    ans = my_net.get_out(inp)
+    print(ans)
+    print(answer(ans))
 
-    print(my_net.get_out(inp), answer(my_net.get_out(inp)))
     clear()
 
 

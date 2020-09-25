@@ -15,18 +15,28 @@ def sigmoid(x):
 
 
 # default activation function
-def tanh(x):
-    return 1 - sigmoid(-2 * x)
+def tanh(v):
+    w = np.copy(v)
+    for i in range(w.size):
+        w[(i, 0)] = 1 - sigmoid(-2 * w[(i, 0)])
+    return w
 
 
 # relu
 def relu(x):
     return max(0, x)
+relu = np.vectorize(relu)
+
+
+def softmax(v):
+    w = np.copy(v)
+    for i in range(w.size):
+        w[(i, 0)] = math.e ** w[(i, 0)]
+    return w / sum(w)
 
 
 # calculates gradient of a function at a specific value, used for descent
 def gradient(func, x, delta=0.001):
-    vectorized_func = np.vectorize(func)
     return (func(x + delta) - func(x)) / delta
 
 
@@ -39,9 +49,9 @@ class Net:
         self.activate = act
 
         if self.activate == []:
-            self.activate = [relu for i in range(self.layers + 1)]
+            self.activate = [tanh for i in range(self.layers + 1)]
             self.activate[0] = tanh
-            self.activate[-1] = tanh
+            self.activate[-1] = softmax
 
         for layer in range(self.layers):
             self.cons.append(np.random.uniform(-1, 1, (nodes[layer + 1], nodes[layer])))
@@ -58,22 +68,22 @@ class Net:
     # feeds forward an input np array and returns the calculated output
     def get_out(self, inp):
         for layer in range(self.layers):
-            inp = np.vectorize(self.activate[layer])(inp)
+            inp = self.activate[layer](inp)
             inp = np.matmul(self.cons[layer], inp) + self.biases[layer]
-        return np.vectorize(self.activate[-1])(inp)
+        return self.activate[-1](inp)
 
     # trains the net on a given input array, desired output array, and learning rate (default 0.1)
     def train(self, inp, exp, lr=0.1):
         inputs = [inp]
         for layer in range(self.layers):
-            inp = np.vectorize(self.activate[layer])(inp)
+            inp = self.activate[layer](inp)
             inp = np.matmul(self.cons[layer], inp) + self.biases[layer]
             inputs.append(inp)
 
         # inputs has all node values from inp to out (not activated)
 
         # has been activated
-        out = np.vectorize(self.activate[-1])(inp)
+        out = self.activate[-1](inp)
 
         # errors will have all errors from out to first hidden in that order (activated)
         errors = [exp - out]
@@ -84,8 +94,8 @@ class Net:
         for layer in range(self.layers):
             # adjust connection weights
             self.cons[-(layer + 1)] += np.matmul(
-                lr * errors[layer] * gradient(np.vectorize(self.activate[-(layer + 1)]), inputs[-(layer + 1)]),
+                lr * errors[layer] * gradient(self.activate[-(layer + 1)], inputs[-(layer + 1)]),
                 np.transpose(inputs[-(layer + 2)]))
             # adjust bias weights
             self.biases[-(layer + 1)] += lr * errors[layer] * gradient(
-                np.vectorize(self.activate[-(layer + 1)]), inputs[-(layer + 1)])
+                self.activate[-(layer + 1)], inputs[-(layer + 1)])
