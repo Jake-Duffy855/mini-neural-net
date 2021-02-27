@@ -6,7 +6,8 @@ import numpy as np
 import matplotlib.pyplot as pp
 
 lr = 0.05
-a = n.Net(4, [2, 4, 3, 1])
+a = n.Net([2, 4, 3, 1])
+a.activate[-1] = n.tanh
 print(a.activate)
 # a.set_activation(n.tanh)
 

@@ -1,6 +1,7 @@
 import Net as nn
 import numpy as np
 import mnist
+import emnist
 import matplotlib.pyplot as plt
 import random
 from tkinter import *
@@ -11,10 +12,13 @@ canvas_width = 280
 canvas_height = 280
 
 # get the images and labels
-train_images = mnist.train_images()
-train_labels = mnist.train_labels()
-test_images = mnist.test_images()
-test_labels = mnist.test_labels()
+# train_images = mnist.train_images()
+# train_labels = mnist.train_labels()
+# test_images = mnist.test_images()
+# test_labels = mnist.test_labels()
+
+train_images, train_labels = emnist.extract_training_samples('digits')
+test_images, test_labels = emnist.extract_test_samples('digits')
 
 # plt.imshow(test_images[0], cmap='gray')
 # plt.show()
@@ -31,7 +35,9 @@ test_images = list(test_images.reshape(-1, 784, 1))
 train_labels = list(train_labels)
 test_labels = list(test_labels)
 
-my_net = nn.Net(3, [784, 128, 10])
+my_net = nn.Net([784, 128, 128, 10])
+# my_net.activate = [nn.tanh, nn.relu, nn.relu, nn.tanh]
+print(my_net.activate)
 
 
 # get the desired output array for the given number
@@ -63,14 +69,14 @@ def train_net(net, iterations=1, divisor=1):
         for i in range(trains):
             for j in range(1):
                 net.train(train_images[i], get_output_array(train_labels[i]),
-                          0.0004 * trains / (trains + trains * iteration + i))
+                          0.004 * trains / (trains + trains * iteration + i))
             if i % 1000 == 0:
                 acc = get_accuracy(my_net, 40)
                 print(str(iteration) + ", " + str(i) + " : " + str(acc))
                 plt.plot(i, acc, 'bo')
 
 
-train_net(my_net, 1, 2)
+train_net(my_net, 1, 8)
 print(get_accuracy(my_net, 1))
 
 f = open("net.txt", "w")
